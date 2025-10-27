@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <title>Dynamic QR Redirect</title>
+
+        <!-- ✅ Google Analytics (replace G-XXXXXXX with your GA4 Measurement ID) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXX"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', 'G-KEGSEP7ME9'); // <-- Replace this with your own Measurement ID
+        </script>
+
+        <script>
+            async function redirect() {
+                const params = new URLSearchParams(window.location.search);
+                const id = params.get("id");
+
+                if (!id) {
+                    document.body.innerHTML = "❌ No QR ID provided.";
+                    return;
+                }
+
+                try {
+                    const response = await fetch("links.json");
+                    const links = await response.json();
+
+                    if (links[id]) {
+                        // 🔹 Track scan event in Google Analytics
+                        gtag('event', 'qr_scan', {
+                            'qr_id': id,
+                            'destination': links[id],
+                            'timestamp': new Date().toISOString()
+                        });
+
+                        // Small delay to allow GA event to fire
+                        setTimeout(() => {
+                            window.location.href = links[id];
+                        }, 300);
+                    } else {
+                        document.body.innerHTML = "❌ Invalid QR ID.";
+                    }
+                } catch (error) {
+                    document.body.innerHTML = "⚠️ Error loading redirect data.";
+                }
+            }
+
+            redirect();
+        </script>
+    </head>
+
+    <body>
+        <p>Redirecting...</p>
+    </body>
+
+</html>
